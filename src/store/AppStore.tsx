@@ -18,10 +18,16 @@ interface AppStoreValue {
 
 const AppStoreContext = createContext<AppStoreValue | null>(null);
 
-export function AppStoreProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useLocalStorage<SavedItem[]>("cache.items", SEED_ITEMS);
+export function AppStoreProvider({
+  userId,
+  children,
+}: {
+  userId: string;
+  children: ReactNode;
+}) {
+  const [items, setItems] = useLocalStorage<SavedItem[]>(`cache.items.${userId}`, SEED_ITEMS);
   const [categories, setCategories] = useLocalStorage<Category[]>(
-    "cache.categories",
+    `cache.categories.${userId}`,
     DEFAULT_CATEGORIES
   );
 

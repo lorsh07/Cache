@@ -1,8 +1,9 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Camera, Image as ImageIcon, Trash2, X } from "lucide-react";
 import type { Category, SavedItem } from "../types";
 import { useClickOutside } from "../hooks/useClickOutside";
 import { formatRelativeDate } from "../utils/format";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface LightboxProps {
   item: SavedItem;
@@ -13,7 +14,8 @@ interface LightboxProps {
 
 export function Lightbox({ item, category, onClose, onDelete }: LightboxProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  useClickOutside(cardRef, onClose);
+  const [confirming, setConfirming] = useState(false);
+  useClickOutside(cardRef, onClose, !confirming);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
@@ -68,7 +70,7 @@ export function Lightbox({ item, category, onClose, onDelete }: LightboxProps) {
             )}
             <button
               type="button"
-              onClick={onDelete}
+              onClick={() => setConfirming(true)}
               className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--color-red)] active:scale-95 transition-transform"
             >
               <Trash2 size={14} />
@@ -77,6 +79,15 @@ export function Lightbox({ item, category, onClose, onDelete }: LightboxProps) {
           </div>
         </div>
       </div>
+
+      {confirming && (
+        <ConfirmDialog
+          title="이 항목을 삭제할까요?"
+          message={`"${item.title}"을(를) 삭제하면 되돌릴 수 없어요.`}
+          onCancel={() => setConfirming(false)}
+          onConfirm={onDelete}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Camera, Image as ImageIcon, Link as LinkIcon, Trash2 } from "lucide-react";
 import type { Category, SavedItem } from "../types";
 import { formatRelativeDate } from "../utils/format";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface ItemCardProps {
   item: SavedItem;
@@ -11,6 +13,7 @@ interface ItemCardProps {
 
 export function ItemCard({ item, category, onOpen, onDelete }: ItemCardProps) {
   const hasImage = item.type !== "link" && item.imageDataUrl;
+  const [confirming, setConfirming] = useState(false);
 
   return (
     <div
@@ -21,13 +24,25 @@ export function ItemCard({ item, category, onOpen, onDelete }: ItemCardProps) {
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          onDelete();
+          setConfirming(true);
         }}
         className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
         aria-label="삭제"
       >
         <Trash2 size={14} />
       </button>
+
+      {confirming && (
+        <ConfirmDialog
+          title="이 항목을 삭제할까요?"
+          message={`"${item.title}"을(를) 삭제하면 되돌릴 수 없어요.`}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            onDelete();
+          }}
+        />
+      )}
 
       {hasImage ? (
         <div className="aspect-[4/3] w-full overflow-hidden bg-black/5">

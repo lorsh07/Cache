@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import type { User } from "firebase/auth";
 import { useAppStore } from "./store/AppStore";
+import { useAuth } from "./store/AuthContext";
 import { useTheme } from "./hooks/useTheme";
 import { TopBar } from "./components/TopBar";
 import { CategoryFilterBar } from "./components/CategoryFilterBar";
@@ -13,8 +15,9 @@ import type { SavedItem } from "./types";
 
 export type ViewMode = "all" | "gallery";
 
-function App() {
+function App({ user }: { user: User }) {
   const { items, categories, deleteItem } = useAppStore();
+  const { signOutUser } = useAuth();
   const [themeMode, setThemeMode] = useTheme();
   const [view, setView] = useState<ViewMode>("all");
   const [query, setQuery] = useState("");
@@ -48,6 +51,8 @@ function App() {
         onOpenCategoryManager={() => setShowCategoryManager(true)}
         themeMode={themeMode}
         onThemeChange={setThemeMode}
+        user={user}
+        onSignOut={signOutUser}
       />
 
       <main className="max-w-5xl mx-auto pt-4 space-y-4">

@@ -1,7 +1,9 @@
 import { Search, Tags, X } from "lucide-react";
+import type { User } from "firebase/auth";
 import type { ViewMode } from "../App";
 import type { ThemeMode } from "../hooks/useTheme";
 import { ThemeToggle } from "./ThemeToggle";
+import { ProfileMenu } from "./ProfileMenu";
 
 interface TopBarProps {
   view: ViewMode;
@@ -11,6 +13,8 @@ interface TopBarProps {
   onOpenCategoryManager: () => void;
   themeMode: ThemeMode;
   onThemeChange: (mode: ThemeMode) => void;
+  user: User;
+  onSignOut: () => void;
 }
 
 export function TopBar({
@@ -21,6 +25,8 @@ export function TopBar({
   onOpenCategoryManager,
   themeMode,
   onThemeChange,
+  user,
+  onSignOut,
 }: TopBarProps) {
   return (
     <header className="sticky top-0 z-20 bg-[#f5f5f7]/80 dark:bg-black/70 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.08]">
@@ -39,6 +45,7 @@ export function TopBar({
               <Tags size={15} />
               카테고리
             </button>
+            <ProfileMenu user={user} onSignOut={onSignOut} />
           </div>
         </div>
 

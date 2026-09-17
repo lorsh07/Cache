@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { useAppStore } from "../store/AppStore";
 import { ColorSwatchButton } from "./ColorSwatchButton";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { COLOR_PRESETS } from "../data/defaultCategories";
+import type { Category } from "../types";
 
 interface CategoryManagerSheetProps {
   onClose: () => void;
@@ -12,6 +14,7 @@ export function CategoryManagerSheet({ onClose }: CategoryManagerSheetProps) {
   const { categories, items, addCategory, updateCategory, deleteCategory } = useAppStore();
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(COLOR_PRESETS[0]);
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
   function handleAdd() {
     if (!newName.trim()) return;
@@ -57,7 +60,7 @@ export function CategoryManagerSheet({ onClose }: CategoryManagerSheetProps) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => deleteCategory(cat.id)}
+                  onClick={() => setPendingDelete(cat)}
                   disabled={categories.length <= 1}
                   className="w-7 h-7 rounded-full flex items-center justify-center text-black/35 dark:text-white/35 hover:text-[var(--color-red)] disabled:opacity-20 disabled:hover:text-black/35 transition-colors shrink-0"
                   aria-label="카테고리 삭제"
@@ -89,6 +92,22 @@ export function CategoryManagerSheet({ onClose }: CategoryManagerSheetProps) {
           </div>
         </div>
       </div>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title={`'${pendingDelete.name}' 카테고리를 삭제할까요?`}
+          message={
+            items.some((it) => it.categoryId === pendingDelete.id)
+              ? "이 카테고리에 속한 항목은 다른 카테고리로 옮겨져요."
+              : "이 작업은 되돌릴 수 없어요."
+          }
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            deleteCategory(pendingDelete.id);
+            setPendingDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 }
