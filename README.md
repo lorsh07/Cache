@@ -1,1 +1,97 @@
 # Cache
+
+웹서핑이나 인스타그램에서 저장해둔 링크·스크린샷·사진을 한곳에 모아 색상으로 분류하고, 빠르게 다시 찾을 수 있도록 도와주는 앱입니다. 애플 스타일의 미니멀한 디자인(반투명 블러 네비게이션, 라운드 카드, 부드러운 다크모드 전환)을 따릅니다.
+
+## 주요 기능
+
+- **로그인 / 회원가입**: 이메일·비밀번호 및 **구글 로그인**(Firebase Authentication) 지원. 계정별로 데이터가 분리돼요.
+- **홈 화면**: 로그아웃 상태에서 보여지는 소개 화면 → 로그인/회원가입으로 진입
+- **한눈에 모아보기**: 저장한 링크/스크린샷/사진을 카드 그리드로 모아서 확인
+- **색상 카테고리 분류**: 기본 카테고리(🔴 빨강 / 🟡 노랑 / 🔵 파랑) 제공, `+ 새 카테고리`로 이름과 색상을 직접 지정 가능한 컬러 피커 지원
+- **스크린샷 갤러리**: 이미지 형태로 저장한 항목만 모아 매서너리(masonry) 그리드로 보여주는 갤러리 탭
+- **인스타그램 링크로 저장**: 인스타그램은 "저장한 게시물" 목록을 가져올 수 있는 공개 API를 제공하지 않아서, 게시물 링크를 붙여넣는 방식으로 저장해요. URL 입력창의 클립보드 붙여넣기 버튼으로 빠르게 채울 수 있어요.
+- **핸드폰 갤러리 연동**: 스크린샷/사진 업로드 시 여러 장을 한 번에 선택하면 선택된 카테고리로 즉시 일괄 저장돼요.
+- **기기 간 자동 동기화**: 같은 계정으로 로그인하면 폰/PC 등 어느 기기에서든 저장한 항목이 실시간으로 동기화돼요 (Firestore). 별도의 "연동" 버튼 없이 로그인만 하면 됩니다.
+- **삭제 확인**: 항목/카테고리 삭제 시 "정말 삭제할까요?" 확인 팝업(취소/삭제) 표시
+- **검색 & 필터**: 제목/메모/도메인 검색, 카테고리 칩으로 빠른 필터링
+- **부드러운 다크모드 전환**: 라이트/다크/시스템 3단 토글, 색상이 부드럽게 블렌딩되며 전환
+
+## 기술 스택
+
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4 (`@tailwindcss/vite`)
+- Firebase Authentication (이메일/비밀번호, Google) + Cloud Firestore (실시간 동기화)
+- lucide-react 아이콘
+
+## 시작하기
+
+```bash
+npm install
+npm run dev
+```
+
+브라우저에서 `http://localhost:5173` 접속.
+
+### Firebase (로그인/구글 로그인) 설정
+
+로그인 기능은 실제 Firebase 프로젝트 설정이 있어야 동작해요. 설정하지 않으면 앱 실행 시 안내 화면이 대신 표시됩니다.
+
+1. [console.firebase.google.com](https://console.firebase.google.com) 에서 새 프로젝트 생성
+2. 프로젝트 설정 → 일반 → "내 앱"에서 웹 앱 추가 → 표시되는 설정 값(config) 복사
+3. Authentication → Sign-in method 에서 **Google**, **이메일/비밀번호** 제공업체 사용 설정
+4. Authentication → Settings → 승인된 도메인에 `localhost` 및 배포할 도메인 추가
+5. 프로젝트 루트의 `.env.example` 파일을 `.env.local` 로 복사하고 값 채우기
+
+```bash
+cp .env.example .env.local
+# .env.local 을 열어 VITE_FIREBASE_* 값을 채워넣기
+```
+
+6. 개발 서버 재시작 (`npm run dev`)
+
+`.env.local`은 `.gitignore`에 포함되어 있어 저장소에 커밋되지 않습니다.
+
+### Firestore (기기 간 동기화) 설정
+
+저장한 항목/카테고리를 기기 간에 동기화하려면 Firestore Database도 켜야 해요. 켜지 않으면 화면 위쪽에 동기화 실패 안내 배너가 표시됩니다.
+
+1. Firebase 콘솔 → 왼쪽 메뉴 **Firestore Database** → "데이터베이스 만들기"
+2. 위치는 가까운 리전으로 선택하고, 처음엔 아무 모드나 선택해도 괜찮음 (규칙은 3단계에서 다시 설정)
+3. 상단 **규칙(Rules)** 탭을 열고 아래 내용으로 전체 교체 후 **게시(Publish)**:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+이 규칙은 로그인한 본인의 데이터(`users/{자신의 uid}/...`)만 읽고 쓸 수 있게 제한해요. 로그인 첫 화면 진입 시 기본 카테고리 3개와 데모 항목이 자동으로 한 번 생성됩니다.
+
+이미지(스크린샷/사진)는 Firestore 문서 용량 제한(1MB)을 넘지 않도록 저장 전에 자동으로 리사이즈·압축됩니다.
+
+### 기타 스크립트
+
+```bash
+npm run build    # 타입체크 + 프로덕션 빌드
+npm run lint     # oxlint 실행
+npm run preview  # 빌드 결과 미리보기
+```
+
+## 폴더 구조
+
+```
+src/
+  screens/      로그인 전/후 최상위 화면 (홈, 로그인/회원가입, 로딩, Firebase 설정 안내)
+  components/   화면 구성 요소 (카드, 갤러리, 모달, 컬러 피커, 확인 팝업 등)
+  data/         기본 카테고리, 프리셋 색상, 데모 시드 데이터
+  hooks/        테마, 외부 클릭 감지 훅
+  store/        전역 상태(Context) — 인증(Firebase Auth), 항목/카테고리 CRUD(Firestore 실시간 동기화)
+  lib/          Firebase 초기화
+  utils/        날짜 포맷, URL 도메인 추출, 이미지 압축 등 유틸
+  types.ts      Item / Category 타입 정의
+```
