@@ -8,6 +8,16 @@
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="Cache — 웹서핑과 인스타그램에서 저장한 것들을 한눈에 모아 분류하고 찾는 앱" />
     <title>Cache</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("cache.theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var isDark = stored === "dark" || (stored !== "light" && prefersDark);
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

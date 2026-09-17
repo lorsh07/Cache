@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAppStore } from "./store/AppStore";
+import { useTheme } from "./hooks/useTheme";
 import { TopBar } from "./components/TopBar";
 import { CategoryFilterBar } from "./components/CategoryFilterBar";
 import { ItemGrid } from "./components/ItemGrid";
@@ -14,6 +15,7 @@ export type ViewMode = "all" | "gallery";
 
 function App() {
   const { items, categories, deleteItem } = useAppStore();
+  const [themeMode, setThemeMode] = useTheme();
   const [view, setView] = useState<ViewMode>("all");
   const [query, setQuery] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -44,6 +46,8 @@ function App() {
         query={query}
         onQueryChange={setQuery}
         onOpenCategoryManager={() => setShowCategoryManager(true)}
+        themeMode={themeMode}
+        onThemeChange={setThemeMode}
       />
 
       <main className="max-w-5xl mx-auto pt-4 space-y-4">

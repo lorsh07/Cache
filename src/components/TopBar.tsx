@@ -1,5 +1,7 @@
 import { Search, Tags, X } from "lucide-react";
 import type { ViewMode } from "../App";
+import type { ThemeMode } from "../hooks/useTheme";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopBarProps {
   view: ViewMode;
@@ -7,9 +9,19 @@ interface TopBarProps {
   query: string;
   onQueryChange: (q: string) => void;
   onOpenCategoryManager: () => void;
+  themeMode: ThemeMode;
+  onThemeChange: (mode: ThemeMode) => void;
 }
 
-export function TopBar({ view, onViewChange, query, onQueryChange, onOpenCategoryManager }: TopBarProps) {
+export function TopBar({
+  view,
+  onViewChange,
+  query,
+  onQueryChange,
+  onOpenCategoryManager,
+  themeMode,
+  onThemeChange,
+}: TopBarProps) {
   return (
     <header className="sticky top-0 z-20 bg-[#f5f5f7]/80 dark:bg-black/70 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.08]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-3 space-y-3">
@@ -17,14 +29,17 @@ export function TopBar({ view, onViewChange, query, onQueryChange, onOpenCategor
           <h1 className="text-[26px] font-bold tracking-tight text-black/90 dark:text-white/90">
             Cache
           </h1>
-          <button
-            type="button"
-            onClick={onOpenCategoryManager}
-            className="flex items-center gap-1.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-3.5 py-2 text-[13px] font-medium text-black/70 dark:text-white/75 active:scale-95 transition-transform"
-          >
-            <Tags size={15} />
-            카테고리
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle mode={themeMode} onChange={onThemeChange} />
+            <button
+              type="button"
+              onClick={onOpenCategoryManager}
+              className="flex items-center gap-1.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] px-3.5 py-2 text-[13px] font-medium text-black/70 dark:text-white/75 active:scale-95 transition-transform"
+            >
+              <Tags size={15} />
+              카테고리
+            </button>
+          </div>
         </div>
 
         <div className="relative">
