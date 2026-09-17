@@ -4,6 +4,7 @@ import type { ViewMode } from "../App";
 import type { ThemeMode } from "../hooks/useTheme";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileMenu } from "./ProfileMenu";
+import { SyncBadge } from "./SyncBadge";
 
 interface TopBarProps {
   view: ViewMode;
@@ -36,6 +37,7 @@ export function TopBar({
             Cache
           </h1>
           <div className="flex items-center gap-2">
+            <SyncBadge />
             <ThemeToggle mode={themeMode} onChange={onThemeChange} />
             <button
               type="button"

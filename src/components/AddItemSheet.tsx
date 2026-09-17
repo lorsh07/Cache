@@ -13,6 +13,7 @@ import { useAppStore } from "../store/AppStore";
 import { extractDomain } from "../utils/format";
 import { ColorSwatchButton } from "./ColorSwatchButton";
 import { COLOR_PRESETS } from "../data/defaultCategories";
+import { compressImage } from "../utils/image";
 
 interface AddItemSheetProps {
   categories: Category[];
@@ -61,24 +62,28 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
     if (files.length === 0) return;
 
     if (files.length === 1) {
-      const dataUrl = await readFileAsDataUrl(files[0]);
+      const dataUrl = await compressImage(await readFileAsDataUrl(files[0]));
       setImageDataUrl(dataUrl);
       return;
     }
 
     setImportingCount(files.length);
-    const dataUrls = await Promise.all(files.map(readFileAsDataUrl));
-    files.forEach((file, i) => {
-      const base = file.name.replace(/\.[^/.]+$/, "").trim();
-      addItem({
-        type,
-        title: base || `${type === "screenshot" ? "스크린샷" : "사진"} ${i + 1}`,
-        categoryId,
-        imageDataUrl: dataUrls[i],
-      });
-    });
+    const dataUrls = await Promise.all(
+      files.map(async (file) => compressImage(await readFileAsDataUrl(file)))
+    );
+    const results = await Promise.all(
+      files.map((file, i) => {
+        const base = file.name.replace(/\.[^/.]+$/, "").trim();
+        return addItem({
+          type,
+          title: base || `${type === "screenshot" ? "스크린샷" : "사진"} ${i + 1}`,
+          categoryId,
+          imageDataUrl: dataUrls[i],
+        });
+      })
+    );
     setImportingCount(null);
-    onClose();
+    if (results.some(Boolean)) onClose();
   }
 
   async function handlePasteFromClipboard() {
@@ -95,15 +100,17 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
     }
   }
 
-  function handleCreateCategory() {
+  async function handleCreateCategory() {
     if (!newCategoryName.trim()) return;
-    const created = addCategory({ name: newCategoryName.trim(), color: newCategoryColor });
-    setCategoryId(created.id);
-    setNewCategoryName("");
-    setShowNewCategory(false);
+    const created = await addCategory({ name: newCategoryName.trim(), color: newCategoryColor });
+    if (created) {
+      setCategoryId(created.id);
+      setNewCategoryName("");
+      setShowNewCategory(false);
+    }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit) return;
     const item: Omit<SavedItem, "id" | "createdAt"> = {
       type,
@@ -114,8 +121,8 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
         ? { url: url.trim() || undefined, domain: url.trim() ? extractDomain(url.trim()) : undefined }
         : { imageDataUrl }),
     };
-    addItem(item);
-    onClose();
+    const ok = await addItem(item);
+    if (ok) onClose();
   }
 
   return (

@@ -11,12 +11,14 @@ import { GalleryView } from "./components/GalleryView";
 import { AddItemSheet } from "./components/AddItemSheet";
 import { CategoryManagerSheet } from "./components/CategoryManagerSheet";
 import { Lightbox } from "./components/Lightbox";
+import { ErrorBanner } from "./components/ErrorBanner";
+import { SplashScreen } from "./screens/SplashScreen";
 import type { SavedItem } from "./types";
 
 export type ViewMode = "all" | "gallery";
 
 function App({ user }: { user: User }) {
-  const { items, categories, deleteItem } = useAppStore();
+  const { items, categories, deleteItem, loading, error, clearError } = useAppStore();
   const { signOutUser } = useAuth();
   const [themeMode, setThemeMode] = useTheme();
   const [view, setView] = useState<ViewMode>("all");
@@ -41,8 +43,11 @@ function App({ user }: { user: User }) {
     });
   }, [items, selectedCategoryId, query]);
 
+  if (loading) return <SplashScreen />;
+
   return (
     <div className="min-h-screen pb-10">
+      {error && <ErrorBanner message={error} onDismiss={clearError} />}
       <TopBar
         view={view}
         onViewChange={setView}

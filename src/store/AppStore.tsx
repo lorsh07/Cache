@@ -1,6 +1,17 @@
-import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { v4 as uuid } from "uuid";
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { db } from "../lib/firebase";
 import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { SEED_ITEMS } from "../data/seed";
 import type { Category, SavedItem } from "../types";
@@ -8,60 +19,154 @@ import type { Category, SavedItem } from "../types";
 interface AppStoreValue {
   items: SavedItem[];
   categories: Category[];
-  addItem: (item: Omit<SavedItem, "id" | "createdAt">) => void;
-  updateItem: (id: string, patch: Partial<SavedItem>) => void;
-  deleteItem: (id: string) => void;
-  addCategory: (category: Omit<Category, "id">) => Category;
-  updateCategory: (id: string, patch: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  clearError: () => void;
+  addItem: (item: Omit<SavedItem, "id" | "createdAt">) => Promise<boolean>;
+  updateItem: (id: string, patch: Partial<SavedItem>) => Promise<boolean>;
+  deleteItem: (id: string) => Promise<boolean>;
+  addCategory: (category: Omit<Category, "id">) => Promise<Category | null>;
+  updateCategory: (id: string, patch: Partial<Category>) => Promise<boolean>;
+  deleteCategory: (id: string) => Promise<boolean>;
 }
 
 const AppStoreContext = createContext<AppStoreValue | null>(null);
 
-export function AppStoreProvider({
-  userId,
-  children,
-}: {
-  userId: string;
-  children: ReactNode;
-}) {
-  const [items, setItems] = useLocalStorage<SavedItem[]>(`cache.items.${userId}`, SEED_ITEMS);
-  const [categories, setCategories] = useLocalStorage<Category[]>(
-    `cache.categories.${userId}`,
-    DEFAULT_CATEGORIES
-  );
+function friendlyFirestoreError(): string {
+  return "동기화에 실패했어요. Firebase 콘솔에서 Firestore Database가 켜져 있는지, 보안 규칙이 올바른지 확인해주세요.";
+}
+
+export function AppStoreProvider({ userId, children }: { userId: string; children: ReactNode }) {
+  const [items, setItems] = useState<SavedItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const itemsCol = useMemo(() => collection(db!, "users", userId, "items"), [userId]);
+  const categoriesCol = useMemo(() => collection(db!, "users", userId, "categories"), [userId]);
+
+  useEffect(() => {
+    const firestore = db;
+    if (!firestore) return;
+    let cancelled = false;
+    let unsubItems = () => {};
+    let unsubCategories = () => {};
+
+    (async () => {
+      try {
+        const metaRef = doc(firestore, "users", userId, "meta", "init");
+        const metaSnap = await getDoc(metaRef);
+        if (!metaSnap.exists()) {
+          const batch = writeBatch(firestore);
+          DEFAULT_CATEGORIES.forEach((cat) => {
+            const { id, ...rest } = cat;
+            batch.set(doc(firestore, "users", userId, "categories", id), rest);
+          });
+          SEED_ITEMS.forEach((item) => {
+            const { id, ...rest } = item;
+            batch.set(doc(firestore, "users", userId, "items", id), rest);
+          });
+          batch.set(metaRef, { seededAt: Date.now() });
+          await batch.commit();
+        }
+      } catch {
+        if (!cancelled) setError(friendlyFirestoreError());
+      }
+
+      if (cancelled) return;
+
+      unsubItems = onSnapshot(
+        query(itemsCol, orderBy("createdAt", "desc")),
+        (snap) => {
+          setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as SavedItem));
+          setLoading(false);
+        },
+        () => {
+          setError(friendlyFirestoreError());
+          setLoading(false);
+        }
+      );
+      unsubCategories = onSnapshot(categoriesCol, (snap) => {
+        setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Category));
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      unsubItems();
+      unsubCategories();
+    };
+  }, [userId, itemsCol, categoriesCol]);
 
   const value = useMemo<AppStoreValue>(
     () => ({
       items,
       categories,
-      addItem: (item) => {
-        const newItem: SavedItem = { ...item, id: uuid(), createdAt: Date.now() };
-        setItems((prev) => [newItem, ...prev]);
+      loading,
+      error,
+      clearError: () => setError(null),
+      addItem: async (item) => {
+        try {
+          await addDoc(itemsCol, { ...item, createdAt: Date.now() });
+          return true;
+        } catch {
+          setError(friendlyFirestoreError());
+          return false;
+        }
       },
-      updateItem: (id, patch) => {
-        setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
+      updateItem: async (id, patch) => {
+        try {
+          await updateDoc(doc(itemsCol, id), patch);
+          return true;
+        } catch {
+          setError(friendlyFirestoreError());
+          return false;
+        }
       },
-      deleteItem: (id) => {
-        setItems((prev) => prev.filter((it) => it.id !== id));
+      deleteItem: async (id) => {
+        try {
+          await deleteDoc(doc(itemsCol, id));
+          return true;
+        } catch {
+          setError(friendlyFirestoreError());
+          return false;
+        }
       },
-      addCategory: (category) => {
-        const newCategory: Category = { ...category, id: uuid() };
-        setCategories((prev) => [...prev, newCategory]);
-        return newCategory;
+      addCategory: async (category) => {
+        try {
+          const ref = await addDoc(categoriesCol, category);
+          return { id: ref.id, ...category };
+        } catch {
+          setError(friendlyFirestoreError());
+          return null;
+        }
       },
-      updateCategory: (id, patch) => {
-        setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+      updateCategory: async (id, patch) => {
+        try {
+          await updateDoc(doc(categoriesCol, id), patch);
+          return true;
+        } catch {
+          setError(friendlyFirestoreError());
+          return false;
+        }
       },
-      deleteCategory: (id) => {
-        setCategories((prev) => prev.filter((c) => c.id !== id));
-        const fallback = categories.find((c) => c.id !== id)?.id ?? "";
-        setItems((prev) =>
-          prev.map((it) => (it.categoryId === id ? { ...it, categoryId: fallback } : it))
-        );
+      deleteCategory: async (id) => {
+        try {
+          await deleteDoc(doc(categoriesCol, id));
+          const fallback = categories.find((c) => c.id !== id)?.id ?? "";
+          await Promise.all(
+            items
+              .filter((it) => it.categoryId === id)
+              .map((it) => updateDoc(doc(itemsCol, it.id), { categoryId: fallback }))
+          );
+          return true;
+        } catch {
+          setError(friendlyFirestoreError());
+          return false;
+        }
       },
     }),
-    [items, categories, setItems, setCategories]
+    [items, categories, loading, error, itemsCol, categoriesCol]
   );
 
   return <AppStoreContext.Provider value={value}>{children}</AppStoreContext.Provider>;
