@@ -80,6 +80,22 @@ service cloud.firestore {
 
 이미지(스크린샷/사진)는 Firestore 문서 용량 제한(1MB)을 넘지 않도록 저장 전에 자동으로 리사이즈·압축됩니다.
 
+### 실제 주소로 배포하기 (GitHub Pages)
+
+`.github/workflows/deploy.yml`이 push할 때마다 자동으로 빌드해서 GitHub Pages에 배포하도록 설정되어 있어요. 아래 3가지만 해주면 실제 `https://<계정>.github.io/Cache/` 주소로 접속할 수 있어요.
+
+1. **저장소 Secrets에 Firebase 값 등록** — GitHub 저장소 → Settings → Secrets and variables → Actions → "New repository secret"에서 아래 6개를 `.env.local`에 넣은 값 그대로 각각 등록:
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+2. **GitHub Pages 활성화** — 저장소 Settings → Pages → "Build and deployment"의 Source를 **GitHub Actions**로 선택
+3. **Firebase 승인된 도메인 추가** — Firebase 콘솔 → Authentication → Settings → 승인된 도메인에 `<계정>.github.io` 추가 (구글 로그인이 새 주소에서도 동작하려면 필수)
+
+이후 이 브랜치나 `main`에 push하면 Actions 탭에서 배포가 진행되고, 완료되면 Settings → Pages에 실제 주소가 표시돼요.
+
 ### 기타 스크립트
 
 ```bash
