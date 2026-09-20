@@ -18,6 +18,7 @@ import { compressImage } from "../utils/image";
 interface AddItemSheetProps {
   categories: Category[];
   onClose: () => void;
+  editingItem?: SavedItem;
 }
 
 const TYPE_TABS: { type: ItemType; label: string; icon: typeof LinkIcon }[] = [
@@ -35,14 +36,17 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
-  const { addItem, addCategory } = useAppStore();
-  const [type, setType] = useState<ItemType>("link");
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [note, setNote] = useState("");
-  const [imageDataUrl, setImageDataUrl] = useState<string | undefined>();
-  const [categoryId, setCategoryId] = useState<string>(categories[0]?.id ?? "");
+export function AddItemSheet({ categories, onClose, editingItem }: AddItemSheetProps) {
+  const { addItem, updateItem, addCategory } = useAppStore();
+  const isEditing = Boolean(editingItem);
+  const [type, setType] = useState<ItemType>(editingItem?.type ?? "link");
+  const [title, setTitle] = useState(editingItem?.title ?? "");
+  const [url, setUrl] = useState(editingItem?.url ?? "");
+  const [note, setNote] = useState(editingItem?.note ?? "");
+  const [imageDataUrl, setImageDataUrl] = useState<string | undefined>(editingItem?.imageDataUrl);
+  const [categoryId, setCategoryId] = useState<string>(
+    editingItem?.categoryId ?? categories[0]?.id ?? ""
+  );
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState(COLOR_PRESETS[0]);
@@ -121,7 +125,7 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
         ? { url: url.trim() || undefined, domain: url.trim() ? extractDomain(url.trim()) : undefined }
         : { imageDataUrl }),
     };
-    const ok = await addItem(item);
+    const ok = editingItem ? await updateItem(editingItem.id, item) : await addItem(item);
     if (ok) onClose();
   }
 
@@ -129,7 +133,9 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
       <div className="w-full sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#1c1c1e] shadow-[var(--shadow-pop)] animate-sheet-up sm:animate-pop-in">
         <div className="flex items-center justify-between px-5 pt-5 pb-3 sticky top-0 bg-white dark:bg-[#1c1c1e] z-10">
-          <h2 className="text-lg font-bold text-black/90 dark:text-white/90">새로 저장하기</h2>
+          <h2 className="text-lg font-bold text-black/90 dark:text-white/90">
+            {isEditing ? "수정하기" : "새로 저장하기"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -147,7 +153,8 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
                 key={t}
                 type="button"
                 onClick={() => setType(t)}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold transition-colors ${
+                disabled={isEditing}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold transition-colors disabled:opacity-40 ${
                   type === t
                     ? "bg-white dark:bg-[#3a3a3c] text-black dark:text-white shadow-sm"
                     : "text-black/45 dark:text-white/45"
@@ -219,7 +226,7 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                multiple
+                multiple={!isEditing}
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files) void handleFiles(e.target.files);
@@ -254,15 +261,17 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
                           : "사진 업로드"}
                     </span>
                   </button>
-                  <p className="mt-2 text-[12px] text-black/35 dark:text-white/35 text-center">
-                    갤러리에서 여러 장을 한 번에 선택하면{" "}
-                    {selectedCategory && (
-                      <span className="font-medium" style={{ color: selectedCategory.color }}>
-                        '{selectedCategory.name}'
-                      </span>
-                    )}{" "}
-                    카테고리로 바로 저장돼요
-                  </p>
+                  {!isEditing && (
+                    <p className="mt-2 text-[12px] text-black/35 dark:text-white/35 text-center">
+                      갤러리에서 여러 장을 한 번에 선택하면{" "}
+                      {selectedCategory && (
+                        <span className="font-medium" style={{ color: selectedCategory.color }}>
+                          '{selectedCategory.name}'
+                        </span>
+                      )}{" "}
+                      카테고리로 바로 저장돼요
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -315,7 +324,7 @@ export function AddItemSheet({ categories, onClose }: AddItemSheetProps) {
             disabled={!canSubmit}
             className="w-full rounded-xl bg-[var(--color-accent)] text-white font-semibold py-3.5 text-[15px] transition-transform active:scale-[0.98] disabled:opacity-30"
           >
-            저장하기
+            {isEditing ? "수정하기" : "저장하기"}
           </button>
         </div>
       </div>

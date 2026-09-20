@@ -17,4 +17,5 @@ export interface SavedItem {
   imageDataUrl?: string;
   categoryId: string;
   createdAt: number;
+  pinned?: boolean;
 }

@@ -1,10 +1,11 @@
-import { Search, Tags, X } from "lucide-react";
+import { ListChecks, Search, Tags, X } from "lucide-react";
 import type { User } from "firebase/auth";
-import type { ViewMode } from "../App";
+import type { SortMode, ViewMode } from "../App";
 import type { ThemeMode } from "../hooks/useTheme";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileMenu } from "./ProfileMenu";
 import { SyncBadge } from "./SyncBadge";
+import { SortMenu } from "./SortMenu";
 
 interface TopBarProps {
   view: ViewMode;
@@ -16,6 +17,10 @@ interface TopBarProps {
   onThemeChange: (mode: ThemeMode) => void;
   user: User;
   onSignOut: () => void;
+  sortMode: SortMode;
+  onSortChange: (mode: SortMode) => void;
+  selectionMode: boolean;
+  onToggleSelectionMode: () => void;
 }
 
 export function TopBar({
@@ -28,6 +33,10 @@ export function TopBar({
   onThemeChange,
   user,
   onSignOut,
+  sortMode,
+  onSortChange,
+  selectionMode,
+  onToggleSelectionMode,
 }: TopBarProps) {
   return (
     <header className="sticky top-0 z-20 bg-[#f5f5f7]/80 dark:bg-black/70 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.08]">
@@ -74,24 +83,42 @@ export function TopBar({
           )}
         </div>
 
-        <div className="flex gap-1 bg-black/[0.06] dark:bg-white/[0.08] rounded-xl p-1 w-fit">
-          {([
-            { key: "all", label: "전체" },
-            { key: "gallery", label: "갤러리" },
-          ] as { key: ViewMode; label: string }[]).map(({ key, label }) => (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-1 bg-black/[0.06] dark:bg-white/[0.08] rounded-xl p-1 w-fit">
+            {([
+              { key: "all", label: "전체" },
+              { key: "gallery", label: "갤러리" },
+            ] as { key: ViewMode; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onViewChange(key)}
+                className={`rounded-lg px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                  view === key
+                    ? "bg-white dark:bg-[#3a3a3c] text-black dark:text-white shadow-sm"
+                    : "text-black/45 dark:text-white/45"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {view === "all" && <SortMenu mode={sortMode} onChange={onSortChange} />}
             <button
-              key={key}
               type="button"
-              onClick={() => onViewChange(key)}
-              className={`rounded-lg px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                view === key
-                  ? "bg-white dark:bg-[#3a3a3c] text-black dark:text-white shadow-sm"
-                  : "text-black/45 dark:text-white/45"
+              onClick={onToggleSelectionMode}
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13px] font-medium active:scale-95 transition-transform ${
+                selectionMode
+                  ? "bg-[var(--color-accent)] text-white"
+                  : "bg-black/[0.05] dark:bg-white/[0.08] text-black/55 dark:text-white/60"
               }`}
             >
-              {label}
+              <ListChecks size={13} />
+              {selectionMode ? "완료" : "선택"}
             </button>
-          ))}
+          </div>
         </div>
       </div>
     </header>

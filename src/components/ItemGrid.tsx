@@ -8,9 +8,22 @@ interface ItemGridProps {
   categoriesById: Map<string, Category>;
   onOpenItem: (item: SavedItem) => void;
   onDeleteItem: (id: string) => void;
+  onTogglePin: (item: SavedItem) => void;
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
 }
 
-export function ItemGrid({ items, categoriesById, onOpenItem, onDeleteItem }: ItemGridProps) {
+export function ItemGrid({
+  items,
+  categoriesById,
+  onOpenItem,
+  onDeleteItem,
+  onTogglePin,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+}: ItemGridProps) {
   if (items.length === 0) {
     return (
       <EmptyState
@@ -30,6 +43,10 @@ export function ItemGrid({ items, categoriesById, onOpenItem, onDeleteItem }: It
           category={categoriesById.get(item.categoryId)}
           onOpen={() => onOpenItem(item)}
           onDelete={() => onDeleteItem(item.id)}
+          onTogglePin={() => onTogglePin(item)}
+          selectionMode={selectionMode}
+          selected={selectedIds.has(item.id)}
+          onToggleSelect={() => onToggleSelect(item.id)}
         />
       ))}
     </div>

@@ -16,7 +16,7 @@ import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { SEED_ITEMS } from "../data/seed";
 import type { Category, SavedItem } from "../types";
 
-interface AppStoreValue {
+export interface AppStoreValue {
   items: SavedItem[];
   categories: Category[];
   loading: boolean;
@@ -30,7 +30,7 @@ interface AppStoreValue {
   deleteCategory: (id: string) => Promise<boolean>;
 }
 
-const AppStoreContext = createContext<AppStoreValue | null>(null);
+export const AppStoreContext = createContext<AppStoreValue | null>(null);
 
 function friendlyFirestoreError(): string {
   return "동기화에 실패했어요. Firebase 콘솔에서 Firestore Database가 켜져 있는지, 보안 규칙이 올바른지 확인해주세요.";

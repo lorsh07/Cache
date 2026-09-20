@@ -1,0 +1,24 @@
+{
+  "name": "Cache",
+  "short_name": "Cache",
+  "description": "웹서핑과 인스타그램에서 저장한 것들을 한눈에 모아 분류하고 찾는 앱",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Camera, Image as ImageIcon, Link as LinkIcon, Trash2 } from "lucide-react";
+import {
+  Camera,
+  CheckCircle2,
+  Circle,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Star,
+  Trash2,
+} from "lucide-react";
 import type { Category, SavedItem } from "../types";
 import { formatRelativeDate } from "../utils/format";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -9,28 +17,71 @@ interface ItemCardProps {
   category?: Category;
   onOpen: () => void;
   onDelete: () => void;
+  onTogglePin: () => void;
+  selectionMode: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
 }
 
-export function ItemCard({ item, category, onOpen, onDelete }: ItemCardProps) {
+export function ItemCard({
+  item,
+  category,
+  onOpen,
+  onDelete,
+  onTogglePin,
+  selectionMode,
+  selected,
+  onToggleSelect,
+}: ItemCardProps) {
   const hasImage = item.type !== "link" && item.imageDataUrl;
   const [confirming, setConfirming] = useState(false);
 
   return (
     <div
-      className="group relative rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-[var(--shadow-card)] dark:shadow-[var(--shadow-card-dark)] ring-1 ring-black/[0.04] dark:ring-white/[0.06] transition-transform active:scale-[0.98] cursor-pointer"
-      onClick={onOpen}
+      className={`group relative rounded-2xl overflow-hidden bg-white dark:bg-[#1c1c1e] shadow-[var(--shadow-card)] dark:shadow-[var(--shadow-card-dark)] ring-1 transition-transform active:scale-[0.98] cursor-pointer ${
+        selected ? "ring-2 ring-[var(--color-accent)]" : "ring-black/[0.04] dark:ring-white/[0.06]"
+      }`}
+      onClick={selectionMode ? onToggleSelect : onOpen}
     >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setConfirming(true);
-        }}
-        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-        aria-label="삭제"
-      >
-        <Trash2 size={14} />
-      </button>
+      {selectionMode ? (
+        <div className="absolute top-2 left-2 z-10 text-white drop-shadow">
+          {selected ? (
+            <CheckCircle2 size={22} className="text-[var(--color-accent)] bg-white rounded-full" />
+          ) : (
+            <Circle size={22} className="text-white/90" fill="rgba(0,0,0,0.25)" />
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin();
+          }}
+          className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-full backdrop-blur-md flex items-center justify-center transition-opacity ${
+            item.pinned
+              ? "bg-[var(--color-yellow)] text-white opacity-100"
+              : "bg-black/40 text-white opacity-0 group-hover:opacity-100"
+          }`}
+          aria-label={item.pinned ? "고정 해제" : "고정하기"}
+        >
+          <Star size={13} fill={item.pinned ? "currentColor" : "none"} />
+        </button>
+      )}
+
+      {!selectionMode && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirming(true);
+          }}
+          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="삭제"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
 
       {confirming && (
         <ConfirmDialog
