@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Entry } from "../../shared/types";
 import { kindLabel } from "../../shared/types";
 import { Cover } from "./Cover";
@@ -5,6 +6,7 @@ import { Stars } from "./Stars";
 import { Icon } from "./Icon";
 
 export function EntryDetail({ entry, onEdit, onDelete, onClose }: { entry: Entry; onEdit: () => void; onDelete: () => void; onClose: () => void }) {
+  const [armed, setArmed] = useState(false);
   return (
     <div className="detail">
       <div className="sheet-nav">
@@ -27,13 +29,8 @@ export function EntryDetail({ entry, onEdit, onDelete, onClose }: { entry: Entry
           {entry.moods.map((m) => <span key={m} className="chip">{m}</span>)}
         </div>
       )}
-      <button
-        className="destructive"
-        onClick={() => {
-          if (confirm("이 기록을 삭제할까요?")) onDelete();
-        }}
-      >
-        <Icon name="trash" size={18} /> 기록 삭제
+      <button className={`destructive ${armed ? "armed" : ""}`} onClick={() => (armed ? onDelete() : setArmed(true))} onBlur={() => setArmed(false)}>
+        <Icon name="trash" size={18} /> {armed ? "한 번 더 누르면 삭제돼요" : "기록 삭제"}
       </button>
     </div>
   );

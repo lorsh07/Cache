@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { cloudDoc } from "./platform";
 import type { Entry, Recommendation } from "../shared/types";
 
 function load<T>(key: string, fallback: T): T {
@@ -30,6 +31,12 @@ export function useStore() {
   const [entries, setEntries] = usePersisted<Entry[]>("cache.entries", []);
   const [saved, setSaved] = usePersisted<SavedItem[]>("cache.saved", []);
   const [dismissed, setDismissed] = usePersisted<string[]>("cache.dismissed", []);
+
+  useCloudSync({ entries, saved, dismissed }, (data) => {
+    setEntries(data.entries);
+    setSaved(data.saved);
+    setDismissed(data.dismissed);
+  });
 
   const upsertEntry = useCallback(
     (e: Entry) =>
@@ -75,3 +82,53 @@ export const SAMPLE: Omit<Entry, "id" | "createdAt">[] = [
   { kind: "movie", title: "탑건: 매버릭", creator: "조셉 코신스키", date: "2026-08-02", rating: 3, review: "비행 장면은 압도적인데 이야기는 너무 익숙했다.", moods: ["몰입감"] },
   { kind: "music", title: "Blonde", creator: "Frank Ocean", date: "2026-07-21", rating: 4.5, review: "밤 산책할 때 처음부터 끝까지. Self Control에서 매번 멈춘다.", moods: ["여운이 긴", "실험적인"] },
 ];
+
+interface SyncState {
+  entries: Entry[];
+  saved: SavedItem[];
+  dismissed: string[];
+}
+
+// 아티팩트로 열리면 기록을 계정별 db 문서에 보관하고, 처음 열 때 불러온다
+function useCloudSync(state: SyncState, apply: (s: SyncState) => void) {
+  const ref = useRef<Awaited<ReturnType<typeof cloudDoc>>>(null);
+  const last = useRef<string | null>(null);
+  const applyRef = useRef(apply);
+  applyRef.current = apply;
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    cloudDoc().then(async (doc) => {
+      if (!alive || !doc) return;
+      try {
+        const snap = await doc.get();
+        const data = snap.exists ? (snap.data() as Partial<SyncState> | undefined) : undefined;
+        if (data && Array.isArray(data.entries)) {
+          const next = { entries: data.entries, saved: data.saved ?? [], dismissed: data.dismissed ?? [] };
+          last.current = JSON.stringify(next);
+          applyRef.current(next);
+        }
+        ref.current = doc;
+        setReady(true);
+      } catch (e) {
+        console.warn("[db]", e);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const json = JSON.stringify(state);
+  useEffect(() => {
+    if (!ready || !ref.current) return;
+    if (last.current === json) return;
+    if (last.current === null && !state.entries.length && !state.saved.length) return;
+    const t = setTimeout(() => {
+      last.current = json;
+      ref.current?.set(JSON.parse(json)).catch((e) => console.warn("[db]", e));
+    }, 600);
+    return () => clearTimeout(t);
+  }, [json, ready, state.entries.length, state.saved.length]);
+}

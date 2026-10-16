@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Entry, Recommendation, RecommendResponse } from "../shared/types";
+import type { Entry, Recommendation } from "../shared/types";
+import { recommend } from "./platform";
 import { SAMPLE, uid, useStore } from "./store";
 import { Sheet } from "./components/Sheet";
 import { EntryEditor, type Draft } from "./components/EntryEditor";
@@ -50,17 +51,11 @@ export default function App() {
       const shown = discover.result?.recommendations.map((r) => r.title) ?? [];
       setDiscover((s) => ({ ...s, kind, loading: true, error: "" }));
       try {
-        const res = await fetch("/api/recommend", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            entries: store.entries.map(({ kind, title, creator, rating, review, moods }) => ({ kind, title, creator, rating, review, moods })),
-            kind,
-            exclude: [...store.dismissed, ...store.saved.map((s) => s.title), ...shown],
-          }),
+        const result = await recommend({
+          entries: store.entries.map(({ kind, title, creator, rating, review, moods }) => ({ kind, title, creator, rating, review, moods })),
+          kind,
+          exclude: [...store.dismissed, ...store.saved.map((s) => s.title), ...shown],
         });
-        if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? "추천을 불러오지 못했어요.");
-        const result = (await res.json()) as RecommendResponse;
         setDiscover({ kind, loading: false, error: "", result });
       } catch (err) {
         setDiscover((s) => ({ ...s, loading: false, error: err instanceof Error ? err.message : "네트워크 오류가 발생했어요." }));

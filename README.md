@@ -27,10 +27,17 @@ npm run dev            # http://localhost:5173
 `ANTHROPIC_API_KEY`가 없거나 API 호출이 실패하면 내장 카탈로그(`server/catalog.ts`) 기반 추천으로 자동 전환되고,
 화면에 "오프라인"으로 표시됩니다.
 
+## claude.ai 아티팩트로 열기
+
+`npm run build:artifact`는 앱을 단일 파일 `dist/artifact.html`로 묶습니다.
+아티팩트에서는 서버 없이 동작합니다: 추천은 보는 사람의 Claude 계정으로(`sample`),
+기록은 계정별 저장소(`db`)에 보관됩니다.
+
 ## 구조
 
 ```
-server/      Express API (/api/recommend) · Claude 호출 · 오프라인 추천
-shared/      클라이언트·서버 공용 타입
+server/      Express API (/api/recommend) · Claude API 호출
+shared/      공용 타입 · 추천 프롬프트 · 내장 카탈로그와 오프라인 추천
+scripts/     아티팩트용 단일 파일 빌드
 src/         React 앱 (views/, components/, styles.css)
 ```

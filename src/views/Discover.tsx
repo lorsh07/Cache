@@ -53,7 +53,7 @@ export function Discover({
       {loading ? (
         <div className="loading">
           <span className="spinner" />
-          <p className="secondary">기록을 읽고 작품을 고르는 중…</p>
+          <p className="secondary">기록을 읽고 작품을 고르는 중… (최대 1분 정도 걸려요)</p>
           <div className="skeletons">
             {[0, 1, 2].map((i) => <div key={i} className="skeleton" />)}
           </div>

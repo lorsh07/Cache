@@ -1,4 +1,4 @@
-import type { Kind } from "../shared/types.js";
+import type { Kind } from "./types.js";
 
 // API 키가 없을 때 쓰는 내장 추천 카탈로그
 export interface CatalogItem {

@@ -6,7 +6,8 @@
     "dev": "concurrently -k -n server,web \"tsx watch server/index.ts\" \"vite\"",
     "build": "vite build",
     "start": "tsx server/index.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "build:artifact": "vite build && node scripts/build-artifact.mjs"
   },
   "repository": {
     "type": "git",
