@@ -43,7 +43,7 @@ npm run dev            # http://localhost:5173
 ## 배포 (Render, 무료)
 
 1. https://render.com 에 GitHub 계정으로 가입
-2. **New → Blueprint** → `lorsh07/Cache` 저장소, **`deploy` 브랜치** 선택 (`render.yaml`을 자동으로 읽음)
+2. **New → Blueprint** → `lorsh07/Feelcul` 저장소, **`deploy` 브랜치** 선택 (`render.yaml`을 자동으로 읽음)
 3. 키 입력 화면에서 `ANTHROPIC_API_KEY`, `TMDB_API_KEY`, `KAKAO_REST_API_KEY` 입력 (선택)
 4. **Apply** → 몇 분 뒤 `https://cache-xxxx.onrender.com` 주소가 생김
 

@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lorsh07/Cache.git"
+    "url": "git+https://github.com/lorsh07/Feelcul.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lorsh07/Cache/issues"
+    "url": "https://github.com/lorsh07/Feelcul/issues"
   },
-  "homepage": "https://github.com/lorsh07/Cache#readme",
+  "homepage": "https://github.com/lorsh07/Feelcul#readme",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
     "express": "^4.22.3",
