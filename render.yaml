@@ -4,7 +4,7 @@ services:
     name: cache
     runtime: node
     plan: free
-    branch: claude/cache-app
+    branch: deploy
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/status
