@@ -1,6 +1,9 @@
 import { KINDS, type Kind, type RecommendResponse, type Recommendation } from "../../shared/types";
 import { RecCard } from "../components/RecCard";
 import { Icon } from "../components/Icon";
+import { Segmented } from "../components/Segmented";
+
+const FILTERS: { id: Kind | "all"; label: string }[] = [{ id: "all" as const, label: "전체" }, ...KINDS];
 
 export interface DiscoverState {
   kind: Kind | "all";
@@ -36,12 +39,7 @@ export function Discover({
 
   return (
     <>
-      <div className="segmented scroll">
-        <button className={kind === "all" ? "on" : ""} onClick={() => onKind("all")}>전체</button>
-        {KINDS.map((k) => (
-          <button key={k.id} className={kind === k.id ? "on" : ""} onClick={() => onKind(k.id)}>{k.label}</button>
-        ))}
-      </div>
+      <Segmented label="분류" options={FILTERS} value={kind} onChange={onKind} />
 
       {result && !loading && (
         <div className="insight">

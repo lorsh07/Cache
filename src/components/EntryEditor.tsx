@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KINDS, MOODS, type Entry, type Kind } from "../../shared/types";
 import { StarInput } from "./Stars";
+import { Segmented } from "./Segmented";
 import { today, uid } from "../store";
 
 export interface Draft {
@@ -55,13 +56,7 @@ export function EntryEditor({
         <button className="text-button strong" disabled={!valid} onClick={submit}>저장</button>
       </div>
 
-      <div className="segmented scroll" role="tablist">
-        {KINDS.map((k) => (
-          <button key={k.id} role="tab" aria-selected={kind === k.id} className={kind === k.id ? "on" : ""} onClick={() => setKind(k.id)}>
-            {k.label}
-          </button>
-        ))}
-      </div>
+      <Segmented label="분류" options={KINDS} value={kind} onChange={setKind} />
 
       <div className="group">
         <label className="row">

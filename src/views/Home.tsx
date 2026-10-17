@@ -44,6 +44,7 @@ export function Home({
 
   return (
     <>
+      <div className="home-top">
       <section className="stats">
         <div className="stat">
           <span className="stat-value">{entries.length}</span>
@@ -67,6 +68,7 @@ export function Home({
         </div>
         <Icon name="chevron" size={20} />
       </button>
+      </div>
 
       <div className="section-head">
         <h2>최근 기록</h2>

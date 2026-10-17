@@ -94,7 +94,7 @@ export default function App() {
         </button>
       </header>
 
-      <main className="content">
+      <main className="content" key={tab}>
         <div className="large-title">
           {tab === "home" && <p className="eyebrow">{dateLabel}</p>}
           <h1>{current.title}</h1>
@@ -134,12 +134,20 @@ export default function App() {
       </main>
 
       <nav className="tabbar">
+        <div className="side-brand">
+          <span className="side-logo"><Icon name="sparkles" size={18} /></span>
+          Cache
+        </div>
         {TABS.map((t) => (
           <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => go(t.id)} aria-current={tab === t.id}>
             <Icon name={t.icon} size={23} filled={tab === t.id && t.icon !== "list"} />
             <span>{t.label}</span>
+            {t.id === "saved" && store.saved.length > 0 && <span className="side-count">{store.saved.length}</span>}
           </button>
         ))}
+        <button className="side-add primary" onClick={() => setSheet({ type: "new" })}>
+          <Icon name="plus" size={18} /> 새 기록
+        </button>
       </nav>
 
       <Sheet open={sheet.type !== "none"} onClose={close}>

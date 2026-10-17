@@ -3,6 +3,9 @@ import { KINDS, kindLabel, type Entry, type Kind } from "../../shared/types";
 import { Cover } from "../components/Cover";
 import { Stars } from "../components/Stars";
 import { Icon } from "../components/Icon";
+import { Segmented } from "../components/Segmented";
+
+const FILTERS: { id: Kind | "all"; label: string }[] = [{ id: "all" as const, label: "전체" }, ...KINDS];
 
 type Sort = "date" | "rating";
 
@@ -26,12 +29,7 @@ export function Library({ entries, onOpen }: { entries: Entry[]; onOpen: (e: Ent
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="제목, 창작자, 후기 검색" />
       </label>
 
-      <div className="segmented scroll">
-        <button className={filter === "all" ? "on" : ""} onClick={() => setFilter("all")}>전체</button>
-        {KINDS.map((k) => (
-          <button key={k.id} className={filter === k.id ? "on" : ""} onClick={() => setFilter(k.id)}>{k.label}</button>
-        ))}
-      </div>
+      <Segmented label="분류" options={FILTERS} value={filter} onChange={setFilter} />
 
       <div className="list-head">
         <span className="secondary small">{list.length}개</span>
