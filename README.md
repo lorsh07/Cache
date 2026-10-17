@@ -40,6 +40,15 @@ npm run dev            # http://localhost:5173
 `ANTHROPIC_API_KEY`가 없거나 API 호출이 실패하면 내장 카탈로그(`server/catalog.ts`) 기반 추천으로 자동 전환되고,
 화면에 "오프라인"으로 표시됩니다.
 
+## 배포 (Render, 무료)
+
+1. https://render.com 에 GitHub 계정으로 가입
+2. **New → Blueprint** → `lorsh07/Cache` 저장소 선택 (`render.yaml`을 자동으로 읽음)
+3. 키 입력 화면에서 `ANTHROPIC_API_KEY`, `TMDB_API_KEY`, `KAKAO_REST_API_KEY` 입력 (선택)
+4. **Apply** → 몇 분 뒤 `https://cache-xxxx.onrender.com` 주소가 생김
+
+무료 플랜은 15분 동안 접속이 없으면 잠들고, 다음 접속 때 깨어나는 데 30초~1분 걸립니다.
+
 ## claude.ai 아티팩트로 열기
 
 `npm run build:artifact`는 앱을 단일 파일 `dist/artifact.html`로 묶습니다.

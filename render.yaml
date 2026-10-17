@@ -1,0 +1,23 @@
+# Render 블루프린트: https://render.com 에서 New → Blueprint → 이 저장소를 고르면 배포됩니다.
+services:
+  - type: web
+    name: cache
+    runtime: node
+    plan: free
+    branch: claude/cache-app
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/status
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # 아래 키는 Render 대시보드에서 값을 입력합니다 (비워두면 해당 기능만 꺼짐)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TMDB_API_KEY
+        sync: false
+      - key: KAKAO_REST_API_KEY
+        sync: false
+      - key: GOOGLE_BOOKS_API_KEY
+        sync: false
