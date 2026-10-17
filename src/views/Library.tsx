@@ -44,7 +44,7 @@ export function Library({ entries, onOpen }: { entries: Entry[]; onOpen: (e: Ent
         <div className="group">
           {list.map((e) => (
             <button key={e.id} className="row entry-row" onClick={() => onOpen(e)}>
-              <Cover title={e.title} kind={e.kind} size="sm" />
+              <Cover title={e.title} kind={e.kind} creator={e.creator} size="sm" />
               <span className="entry-text">
                 <span className="entry-title">{e.title}</span>
                 <span className="secondary small">

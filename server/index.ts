@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { recommend } from "./recommend.js";
-import { KINDS, type RecommendRequest } from "../shared/types.js";
+import { findCover } from "./covers.js";
+import { KINDS, type Kind, type RecommendRequest } from "../shared/types.js";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -12,6 +13,18 @@ const kindIds = new Set<string>(KINDS.map((k) => k.id));
 
 app.get("/api/status", (_req, res) => {
   res.json({ ai: Boolean(process.env.ANTHROPIC_API_KEY) });
+});
+
+app.get("/api/cover", async (req, res) => {
+  const kind = String(req.query.kind ?? "");
+  const title = String(req.query.title ?? "").trim().slice(0, 200);
+  const creator = String(req.query.creator ?? "").trim().slice(0, 200);
+  if (!kindIds.has(kind) || !title) {
+    res.status(400).json({ error: "kind와 title이 필요해요." });
+    return;
+  }
+  const url = await findCover({ kind: kind as Kind, title, creator });
+  res.set("Cache-Control", "public, max-age=86400").json({ url });
 });
 
 app.post("/api/recommend", async (req, res) => {

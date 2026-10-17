@@ -76,7 +76,7 @@ export function Home({
       <div className="shelf">
         {recent.map((e) => (
           <button key={e.id} className="shelf-item" onClick={() => onOpen(e)}>
-            <Cover title={e.title} kind={e.kind} size="md" />
+            <Cover title={e.title} kind={e.kind} creator={e.creator} size="md" />
             <span className="shelf-title">{e.title}</span>
             <Stars value={e.rating} size={11} />
           </button>

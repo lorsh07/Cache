@@ -23,7 +23,7 @@ export function RecCard({
   };
   return (
     <article className={`rec-card ${leaving ? "leaving" : ""}`}>
-      <Cover title={rec.title} kind={rec.kind} size="md" />
+      <Cover title={rec.title} kind={rec.kind} creator={rec.creator} size="md" />
       <div className="rec-body">
         <div className="rec-meta">
           <span className="eyebrow">{kindLabel(rec.kind)}{rec.year && rec.year !== "—" ? ` · ${rec.year}` : ""}</span>

@@ -15,7 +15,7 @@ export function EntryDetail({ entry, onEdit, onDelete, onClose }: { entry: Entry
         <button className="text-button strong" onClick={onEdit}>편집</button>
       </div>
       <div className="detail-hero">
-        <Cover title={entry.title} kind={entry.kind} size="lg" />
+        <Cover title={entry.title} kind={entry.kind} creator={entry.creator} size="lg" />
         <div>
           <p className="eyebrow">{kindLabel(entry.kind)} · {entry.date.replaceAll("-", ". ")}</p>
           <h2>{entry.title}</h2>
